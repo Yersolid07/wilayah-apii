@@ -253,7 +253,7 @@ Untuk memastikan API berfungsi dengan baik, Anda dapat menggunakan Postman untuk
   {
       "data": [
           {
-              "code": "71.01",
+              "code": "71.71",
               "name": "Kota Manado"
           }
       ]
@@ -265,45 +265,11 @@ Untuk memastikan API berfungsi dengan baik, Anda dapat menggunakan Postman untuk
 ## Screenshots
 Tambahkan screenshot berikut untuk dokumentasi:
 
-### 1. **Postman Testing**
-![Postman Testing](./screenshots/postman.png)  
+###  **Postman Testing**
+![Postman Testing](Screenshot 2025-02-12 at 10.23.53.png)  
 *Screenshot hasil testing endpoint menggunakan Postman.*
 
-### 2. **Tampilan Aplikasi**
-![Tampilan Aplikasi](./screenshots/frontend.png)  
-*Tampilan halaman frontend dengan dropdown dinamis.*
 
----
-
-## Troubleshooting
-Jika Anda mengalami masalah, berikut adalah beberapa langkah debugging:
-1. Periksa log Laravel:
-   ```bash
-   tail -f storage/logs/laravel.log
-   ```
-
-2. Pastikan database sudah diisi dengan seeder:
-   ```bash
-   php artisan db:seed
-   ```
-
-3. Periksa konsol browser (`F12`) untuk melihat error JavaScript.
-
----
-
-## Kontribusi
-Jika Anda ingin berkontribusi, silakan buat pull request atau laporkan issue di repositori ini.
-
----
-
-## Lisensi
-Proyek ini dilisensikan di bawah [MIT License](LICENSE).
-
----
-
-Dengan struktur README ini, Anda dapat dengan mudah mendokumentasikan proyek Anda. Jangan lupa untuk menambahkan **screenshot Postman** dan **tampilan frontend** ke folder `screenshots` agar dokumentasi lebih lengkap! 😊
-
-Selamat mencoba! 🚀
 
 ## License
 
