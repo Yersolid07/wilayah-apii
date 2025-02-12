@@ -80,19 +80,7 @@ Aplikasi ini memungkinkan pengguna untuk memilih wilayah secara bertahap: **Prov
 - Fitur scroll dan search pada dropdown menggunakan **Select2**.
 - API RESTful untuk mengambil data dari database.
 
----
 
-## Daftar Isi
-1. [Persyaratan Sistem](#persyaratan-sistem)
-2. [Instalasi](#instalasi)
-3. [Konfigurasi Database](#konfigurasi-database)
-4. [Seeder Data](#seeder-data)
-5. [API Endpoints](#api-endpoints)
-6. [Frontend](#frontend)
-7. [Testing dengan Postman](#testing-dengan-postman)
-8. [Screenshots](#screenshots)
-
----
 
 ## Persyaratan Sistem
 - PHP >= 8.0
@@ -100,37 +88,6 @@ Aplikasi ini memungkinkan pengguna untuk memilih wilayah secara bertahap: **Prov
 - Node.js (Opsional, jika menggunakan frontend terpisah)
 - SQLite atau MySQL untuk database
 - Axios dan Select2 untuk frontend
-
----
-
-## Instalasi
-1. Clone repositori ini:
-   ```bash
-   git clone https://github.com/your-repo/wilayah-dropdown.git
-   cd wilayah-dropdown
-   ```
-
-2. Install dependensi Laravel:
-   ```bash
-   composer install
-   ```
-
-3. Salin file `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Generate key aplikasi:
-   ```bash
-   php artisan key:generate
-   ```
-
-5. Jalankan server Laravel:
-   ```bash
-   php artisan serve
-   ```
-
----
 
 ## Konfigurasi Database
 1. Edit file `.env` untuk mengonfigurasi database:
