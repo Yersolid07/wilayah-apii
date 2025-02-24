@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WilayahController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,8 +15,15 @@ use App\Http\Controllers\WilayahController;
 |
 */
 
+// Authentication routes
+Route::controller(AuthController::class)->group(function () {
+    Route::post('login', 'login');
+});
 
-Route::get('/provinces', [WilayahController::class, 'getProvinces']);
-Route::get('/cities', [WilayahController::class, 'getCitiesByProvince']); // Endpoint untuk kota
-Route::get('/districts', [WilayahController::class, 'getDistrictsByCity']); // Endpoint untuk kecamatan
-Route::get('/subdistricts', [WilayahController::class, 'getSubdistrictsByDistrict']); // Endpoint untuk kelurahan
+// Protected routes
+Route::middleware('auth:api')->group(function () {
+    Route::get('/provinces', [WilayahController::class, 'getProvinces']);
+    Route::get('/cities', [WilayahController::class, 'getCitiesByProvince']); // Endpoint untuk kota
+    Route::get('/districts', [WilayahController::class, 'getDistrictsByCity']); // Endpoint untuk kecamatan
+    Route::get('/subdistricts', [WilayahController::class, 'getSubdistrictsByDistrict']); // Endpoint untuk kelurahan
+});
