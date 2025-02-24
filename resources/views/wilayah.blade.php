@@ -1,90 +1,132 @@
-{{-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wilayah</title>
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Pilih Wilayah</h1>
-
-        <!-- Dropdown Provinsi -->
-        <label for="province">Provinsi:</label>
-        <select id="province" onchange="fetchCities()">
-            <option value="">Pilih Provinsi</option>
-        </select>
-
-        <!-- Dropdown Kota -->
-        <label for="city">Kota:</label>
-        <select id="city" onchange="fetchDistricts()" disabled>
-            <option value="">Pilih Kota</option>
-        </select>
-
-        <!-- Dropdown Kecamatan -->
-        <label for="district">Kecamatan:</label>
-        <select id="district" onchange="fetchSubdistricts()" disabled>
-            <option value="">Pilih Kecamatan</option>
-        </select>
-
-        <!-- Dropdown Kelurahan -->
-        <label for="subdistrict">Kelurahan:</label>
-        <select id="subdistrict" disabled>
-            <option value="">Pilih Kelurahan</option>
-        </select>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="{{ asset('js/app.js') }}"></script>
-</body>
-</html> --}}
-
-
-
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wilayah</title>
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <!-- Tambahkan CSS Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <title>Form Wilayah Indonesia</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Pilih Wilayah</h1>
+    
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Pilih Wilayah</h4>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="form-group mb-3">
+                            <label for="province">Provinsi</label>
+                            <select class="form-control" id="province" name="province">
+                                <option value="">Pilih Provinsi</option>
+                            </select>
+                        </div>
 
-        <!-- Dropdown Provinsi -->
-        <label for="province">Provinsi:</label>
-        <select id="province" style="width: 100%;" onchange="fetchCities()">
-            <option value="">Pilih Provinsi</option>
-        </select>
+                        <div class="form-group mb-3">
+                            <label for="regency">Kota/Kabupaten</label>
+                            <select class="form-control" id="regency" name="regency">
+                                <option value="">Pilih Kota/Kabupaten</option>
+                            </select>
+                        </div>
 
-        <!-- Dropdown Kota -->
-        <label for="city">Kota:</label>
-        <select id="city" style="width: 100%;" onchange="fetchDistricts()" disabled>
-            <option value="">Pilih Kota</option>
-        </select>
+                        <div class="form-group mb-3">
+                            <label for="district">Kecamatan</label>
+                            <select class="form-control" id="district" name="district">
+                                <option value="">Pilih Kecamatan</option>
+                            </select>
+                        </div>
 
-        <!-- Dropdown Kecamatan -->
-        <label for="district">Kecamatan:</label>
-        <select id="district" style="width: 100%;" onchange="fetchSubdistricts()" disabled>
-            <option value="">Pilih Kecamatan</option>
-        </select>
-
-        <!-- Dropdown Kelurahan -->
-        <label for="subdistrict">Kelurahan:</label>
-        <select id="subdistrict" style="width: 100%;" disabled>
-            <option value="">Pilih Kelurahan</option>
-        </select>
+                        <div class="form-group mb-3">
+                            <label for="village">Kelurahan/Desa</label>
+                            <select class="form-control" id="village" name="village">
+                                <option value="">Pilih Kelurahan/Desa</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- Tambahkan JS Select2 -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="{{ asset('js/app.js') }}"></script>
+<script>
+$(document).ready(function() {
+    // Load Provinsi
+    $.ajax({
+        url: '/api/provinces',
+        type: 'GET',
+        success: function(data) {
+            $('#province').empty();
+            $('#province').append('<option value="">Pilih Provinsi</option>');
+            $.each(data, function(key, value) {
+                $('#province').append('<option value="' + value.id + '">' + value.name + '</option>');
+            });
+        }
+    });
+
+    // Event ketika provinsi dipilih
+    $('#province').on('change', function() {
+        var provinceId = $(this).val();
+        if(provinceId) {
+            $.ajax({
+                url: '/api/regencies/' + provinceId,
+                type: 'GET',
+                success: function(data) {
+                    $('#regency').empty();
+                    $('#district').empty();
+                    $('#village').empty();
+                    $('#regency').append('<option value="">Pilih Kota/Kabupaten</option>');
+                    $('#district').append('<option value="">Pilih Kecamatan</option>');
+                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
+                    $.each(data, function(key, value) {
+                        $('#regency').append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                }
+            });
+        }
+    });
+
+    // Event ketika kota/kabupaten dipilih
+    $('#regency').on('change', function() {
+        var regencyId = $(this).val();
+        if(regencyId) {
+            $.ajax({
+                url: '/api/districts/' + regencyId,
+                type: 'GET',
+                success: function(data) {
+                    $('#district').empty();
+                    $('#village').empty();
+                    $('#district').append('<option value="">Pilih Kecamatan</option>');
+                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
+                    $.each(data, function(key, value) {
+                        $('#district').append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                }
+            });
+        }
+    });
+
+    // Event ketika kecamatan dipilih
+    $('#district').on('change', function() {
+        var districtId = $(this).val();
+        if(districtId) {
+            $.ajax({
+                url: '/api/villages/' + districtId,
+                type: 'GET',
+                success: function(data) {
+                    $('#village').empty();
+                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
+                    $.each(data, function(key, value) {
+                        $('#village').append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
+
 </body>
 </html>
