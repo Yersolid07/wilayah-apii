@@ -9,14 +9,23 @@ class Province extends Model
 {
     use HasFactory;
 
-    protected $table = 'provinces_code';
-    protected $primaryKey = 'code'; // Primary key adalah 'code'
-    public $incrementing = false; // Karena 'code' bukan auto-increment
+    protected $table = 'provinces_ref';
+    protected $primaryKey = 'province_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    
+    protected $fillable = [
+        'province_id',
+        'name',
+        'is_active',
+        'created_at',
+        'created_by',
+        'updated_at',
+        'updated_by'
+    ];
 
-    protected $fillable = ['code', 'name'];
-
-    public function cities()
+    public function regencies()
     {
-        return $this->hasMany(City::class, 'province_code', 'code');
+        return $this->hasMany(Regency::class, 'province_id', 'province_id');
     }
 }
