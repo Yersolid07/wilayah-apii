@@ -1,132 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Form Wilayah Indonesia</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Wilayah Indonesia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Pilih Wilayah</h4>
-                </div>
-                <div class="card-body">
-                    <form>
-                        <div class="form-group mb-3">
-                            <label for="province">Provinsi</label>
-                            <select class="form-control" id="province" name="province">
-                                <option value="">Pilih Provinsi</option>
-                            </select>
-                        </div>
+    <div class="container mt-5">
+        <h1 class="mb-4">Data Wilayah Indonesia</h1>
+        
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label for="province" class="form-label">Provinsi</label>
+                <select class="form-select" id="province">
+                    <option value="">Pilih Provinsi</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="regency" class="form-label">Kabupaten/Kota</label>
+                <select class="form-select" id="regency" disabled>
+                    <option value="">Pilih Kabupaten/Kota</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="district" class="form-label">Kecamatan</label>
+                <select class="form-select" id="district" disabled>
+                    <option value="">Pilih Kecamatan</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="village" class="form-label">Desa/Kelurahan</label>
+                <select class="form-select" id="village" disabled>
+                    <option value="">Pilih Desa/Kelurahan</option>
+                </select>
+            </div>
+        </div>
 
-                        <div class="form-group mb-3">
-                            <label for="regency">Kota/Kabupaten</label>
-                            <select class="form-control" id="regency" name="regency">
-                                <option value="">Pilih Kota/Kabupaten</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="district">Kecamatan</label>
-                            <select class="form-control" id="district" name="district">
-                                <option value="">Pilih Kecamatan</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="village">Kelurahan/Desa</label>
-                            <select class="form-control" id="village" name="village">
-                                <option value="">Pilih Kelurahan/Desa</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
+        <div class="mt-4">
+            <h4>Detail Wilayah Terpilih:</h4>
+            <div id="selected-details" class="mt-2">
+                <p>Silahkan pilih wilayah di atas</p>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-$(document).ready(function() {
-    // Load Provinsi
-    $.ajax({
-        url: '/api/provinces',
-        type: 'GET',
-        success: function(data) {
-            $('#province').empty();
-            $('#province').append('<option value="">Pilih Provinsi</option>');
-            $.each(data, function(key, value) {
-                $('#province').append('<option value="' + value.id + '">' + value.name + '</option>');
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Load provinces on page load
+            $.get('/api/v1/provinces', function(response) {
+                const provinces = response.data;
+                provinces.forEach(function(province) {
+                    $('#province').append(`<option value="${province.id}">${province.name}</option>`);
+                });
             });
-        }
-    });
 
-    // Event ketika provinsi dipilih
-    $('#province').on('change', function() {
-        var provinceId = $(this).val();
-        if(provinceId) {
-            $.ajax({
-                url: '/api/regencies/' + provinceId,
-                type: 'GET',
-                success: function(data) {
-                    $('#regency').empty();
-                    $('#district').empty();
-                    $('#village').empty();
-                    $('#regency').append('<option value="">Pilih Kota/Kabupaten</option>');
-                    $('#district').append('<option value="">Pilih Kecamatan</option>');
-                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
-                    $.each(data, function(key, value) {
-                        $('#regency').append('<option value="' + value.id + '">' + value.name + '</option>');
+            // Province change event
+            $('#province').change(function() {
+                const provinceId = $(this).val();
+                $('#regency').prop('disabled', true).html('<option value="">Pilih Kabupaten/Kota</option>');
+                $('#district').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
+                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
+                
+                if (provinceId) {
+                    $('#regency').prop('disabled', false);
+                    $.get(`/api/v1/provinces/${provinceId}/regencies`, function(response) {
+                        const regencies = response.data;
+                        regencies.forEach(function(regency) {
+                            $('#regency').append(`<option value="${regency.id}">${regency.name}</option>`);
+                        });
                     });
                 }
             });
-        }
-    });
 
-    // Event ketika kota/kabupaten dipilih
-    $('#regency').on('change', function() {
-        var regencyId = $(this).val();
-        if(regencyId) {
-            $.ajax({
-                url: '/api/districts/' + regencyId,
-                type: 'GET',
-                success: function(data) {
-                    $('#district').empty();
-                    $('#village').empty();
-                    $('#district').append('<option value="">Pilih Kecamatan</option>');
-                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
-                    $.each(data, function(key, value) {
-                        $('#district').append('<option value="' + value.id + '">' + value.name + '</option>');
+            // Regency change event
+            $('#regency').change(function() {
+                const regencyId = $(this).val();
+                $('#district').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
+                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
+                
+                if (regencyId) {
+                    $('#district').prop('disabled', false);
+                    $.get(`/api/v1/regencies/${regencyId}/districts`, function(response) {
+                        const districts = response.data;
+                        districts.forEach(function(district) {
+                            $('#district').append(`<option value="${district.id}">${district.name}</option>`);
+                        });
                     });
                 }
             });
-        }
-    });
 
-    // Event ketika kecamatan dipilih
-    $('#district').on('change', function() {
-        var districtId = $(this).val();
-        if(districtId) {
-            $.ajax({
-                url: '/api/villages/' + districtId,
-                type: 'GET',
-                success: function(data) {
-                    $('#village').empty();
-                    $('#village').append('<option value="">Pilih Kelurahan/Desa</option>');
-                    $.each(data, function(key, value) {
-                        $('#village').append('<option value="' + value.id + '">' + value.name + '</option>');
+            // District change event
+            $('#district').change(function() {
+                const districtId = $(this).val();
+                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
+                
+                if (districtId) {
+                    $('#village').prop('disabled', false);
+                    $.get(`/api/v1/districts/${districtId}/villages`, function(response) {
+                        const villages = response.data;
+                        villages.forEach(function(village) {
+                            $('#village').append(`<option value="${village.id}">${village.name}</option>`);
+                        });
                     });
                 }
             });
-        }
-    });
-});
-</script>
 
+            // Village change event
+            $('#village').change(function() {
+                updateSelectedDetails();
+            });
+
+            function updateSelectedDetails() {
+                const province = $('#province option:selected').text();
+                const regency = $('#regency option:selected').text();
+                const district = $('#district option:selected').text();
+                const village = $('#village option:selected').text();
+
+                let details = '<ul class="list-group">';
+                if (province !== 'Pilih Provinsi') details += `<li class="list-group-item">Provinsi: ${province}</li>`;
+                if (regency !== 'Pilih Kabupaten/Kota') details += `<li class="list-group-item">Kabupaten/Kota: ${regency}</li>`;
+                if (district !== 'Pilih Kecamatan') details += `<li class="list-group-item">Kecamatan: ${district}</li>`;
+                if (village !== 'Pilih Desa/Kelurahan') details += `<li class="list-group-item">Desa/Kelurahan: ${village}</li>`;
+                details += '</ul>';
+
+                $('#selected-details').html(details);
+            }
+        });
+    </script>
 </body>
 </html>
