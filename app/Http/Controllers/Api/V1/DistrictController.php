@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use App\Models\District;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+class Controller extends BaseController
+{
+    use AuthorizesRequests, ValidatesRequests;
+}
 
 class DistrictController extends Controller
 {
@@ -31,19 +39,15 @@ class DistrictController extends Controller
             $limit = $request->input('limit', 10);
             
             $total = $query->count();
-            $districts = $query->skip(($page - 1) * $limit)
-                             ->take($limit)
-                             ->get();
+            $districts = $query->select('district_id as id', 'name')
+                              ->skip(($page - 1) * $limit)
+                              ->take($limit)
+                              ->get();
             
             Log::info('Found ' . $districts->count() . ' districts');
             
             return response()->json([
-                'data' => $districts->map(function($district) {
-                    return [
-                        'id' => $district->district_id,
-                        'name' => $district->name
-                    ];
-                }),
+                'data' => $districts,
                 'meta' => [
                     'page' => (int)$page,
                     'limit' => (int)$limit,

@@ -8,42 +8,61 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Data Wilayah Indonesia</h1>
-        
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <label for="province" class="form-label">Provinsi</label>
-                <select class="form-select" id="province">
-                    <option value="">Pilih Provinsi</option>
-                </select>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <label for="regency" class="form-label">Kabupaten/Kota</label>
-                <select class="form-select" id="regency" disabled>
-                    <option value="">Pilih Kabupaten/Kota</option>
-                </select>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <label for="district" class="form-label">Kecamatan</label>
-                <select class="form-select" id="district" disabled>
-                    <option value="">Pilih Kecamatan</option>
-                </select>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <label for="village" class="form-label">Desa/Kelurahan</label>
-                <select class="form-select" id="village" disabled>
-                    <option value="">Pilih Desa/Kelurahan</option>
-                </select>
+        <!-- Login Form -->
+        <div id="loginForm" class="mb-4">
+            <h3>Login</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <input type="email" class="form-control" id="email" placeholder="Email">
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" id="password" placeholder="Password">
+                    </div>
+                    <button class="btn btn-primary" id="loginBtn">Login</button>
+                </div>
             </div>
         </div>
 
-        <div class="mt-4">
-            <h4>Detail Wilayah Terpilih:</h4>
-            <div id="selected-details" class="mt-2">
-                <p>Silahkan pilih wilayah di atas</p>
+        <!-- Data Wilayah (initially hidden) -->
+        <div id="wilayahContent" style="display: none;">
+            <h1 class="mb-4">Data Wilayah Indonesia</h1>
+            
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="province" class="form-label">Provinsi</label>
+                    <select class="form-select" id="province">
+                        <option value="">Pilih Provinsi</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="regency" class="form-label">Kabupaten/Kota</label>
+                    <select class="form-select" id="regency" disabled>
+                        <option value="">Pilih Kabupaten/Kota</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="district" class="form-label">Kecamatan</label>
+                    <select class="form-select" id="district" disabled>
+                        <option value="">Pilih Kecamatan</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <label for="village" class="form-label">Desa/Kelurahan</label>
+                    <select class="form-select" id="village" disabled>
+                        <option value="">Pilih Desa/Kelurahan</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h4>Detail Wilayah Terpilih:</h4>
+                <div id="selected-details" class="mt-2">
+                    <p>Silahkan pilih wilayah di atas</p>
+                </div>
             </div>
         </div>
     </div>
@@ -51,28 +70,62 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Load provinces on page load
-            $.get('/api/v1/provinces', function(response) {
-                const provinces = response.data;
-                provinces.forEach(function(province) {
-                    $('#province').append(`<option value="${province.id}">${province.name}</option>`);
+            let token = '';
+
+            // Login handler
+            $('#loginBtn').click(function() {
+                $.ajax({
+                    url: '/api/v1/auth/login',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        email: $('#email').val(),
+                        password: $('#password').val()
+                    }),
+                    success: function(response) {
+                        token = response.access_token;
+                        $('#loginForm').hide();
+                        $('#wilayahContent').show();
+                        loadProvinces(); // Load provinces after login
+                    },
+                    error: function(xhr) {
+                        alert('Login failed: ' + xhr.responseJSON.error);
+                    }
                 });
             });
+
+            // Load provinces
+            function loadProvinces() {
+                $.ajax({
+                    url: '/api/v1/provinces',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    success: function(response) {
+                        const provinces = response.data;
+                        $('#province').empty().append('<option value="">Pilih Provinsi</option>');
+                        provinces.forEach(function(province) {
+                            $('#province').append(`<option value="${province.id}">${province.name}</option>`);
+                        });
+                    }
+                });
+            }
 
             // Province change event
             $('#province').change(function() {
                 const provinceId = $(this).val();
-                $('#regency').prop('disabled', true).html('<option value="">Pilih Kabupaten/Kota</option>');
-                $('#district').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
-                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
-                
                 if (provinceId) {
-                    $('#regency').prop('disabled', false);
-                    $.get(`/api/v1/provinces/${provinceId}/regencies`, function(response) {
-                        const regencies = response.data;
-                        regencies.forEach(function(regency) {
-                            $('#regency').append(`<option value="${regency.id}">${regency.name}</option>`);
-                        });
+                    $.ajax({
+                        url: `/api/v1/provinces/${provinceId}/regencies`,
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        success: function(response) {
+                            const regencies = response.data;
+                            $('#regency').empty().append('<option value="">Pilih Kabupaten/Kota</option>');
+                            regencies.forEach(function(regency) {
+                                $('#regency').append(`<option value="${regency.id}">${regency.name}</option>`);
+                            });
+                            $('#regency').prop('disabled', false);
+                            $('#district').prop('disabled', true).empty().append('<option value="">Pilih Kecamatan</option>');
+                            $('#village').prop('disabled', true).empty().append('<option value="">Pilih Desa/Kelurahan</option>');
+                        }
                     });
                 }
             });
@@ -80,16 +133,19 @@
             // Regency change event
             $('#regency').change(function() {
                 const regencyId = $(this).val();
-                $('#district').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
-                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
-                
                 if (regencyId) {
-                    $('#district').prop('disabled', false);
-                    $.get(`/api/v1/regencies/${regencyId}/districts`, function(response) {
-                        const districts = response.data;
-                        districts.forEach(function(district) {
-                            $('#district').append(`<option value="${district.id}">${district.name}</option>`);
-                        });
+                    $.ajax({
+                        url: `/api/v1/regencies/${regencyId}/districts`,
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        success: function(response) {
+                            const districts = response.data;
+                            $('#district').empty().append('<option value="">Pilih Kecamatan</option>');
+                            districts.forEach(function(district) {
+                                $('#district').append(`<option value="${district.id}">${district.name}</option>`);
+                            });
+                            $('#district').prop('disabled', false);
+                            $('#village').prop('disabled', true).empty().append('<option value="">Pilih Desa/Kelurahan</option>');
+                        }
                     });
                 }
             });
@@ -97,15 +153,18 @@
             // District change event
             $('#district').change(function() {
                 const districtId = $(this).val();
-                $('#village').prop('disabled', true).html('<option value="">Pilih Desa/Kelurahan</option>');
-                
                 if (districtId) {
-                    $('#village').prop('disabled', false);
-                    $.get(`/api/v1/districts/${districtId}/villages`, function(response) {
-                        const villages = response.data;
-                        villages.forEach(function(village) {
-                            $('#village').append(`<option value="${village.id}">${village.name}</option>`);
-                        });
+                    $.ajax({
+                        url: `/api/v1/districts/${districtId}/villages`,
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        success: function(response) {
+                            const villages = response.data;
+                            $('#village').empty().append('<option value="">Pilih Desa/Kelurahan</option>');
+                            villages.forEach(function(village) {
+                                $('#village').append(`<option value="${village.id}">${village.name}</option>`);
+                            });
+                            $('#village').prop('disabled', false);
+                        }
                     });
                 }
             });

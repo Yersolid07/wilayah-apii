@@ -11,8 +11,6 @@ class RegionalSeeder extends Seeder
     public function run()
     {
         try {
-            DB::statement('PRAGMA foreign_keys = OFF;'); // Temporarily disable foreign key checks
-            
             // Import Provinces
             $provinces = $this->readCsv(storage_path('app/csv/provinsi.csv'));
             foreach ($provinces as $province) {
@@ -88,8 +86,6 @@ class RegionalSeeder extends Seeder
                     Log::warning("Invalid village ID format: {$village['id']}");
                 }
             }
-
-            DB::statement('PRAGMA foreign_keys = ON;'); // Re-enable foreign key checks
 
         } catch (\Exception $e) {
             Log::error('Error in RegionalSeeder: ' . $e->getMessage());
