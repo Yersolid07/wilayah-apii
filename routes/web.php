@@ -16,4 +16,4 @@ Route::get('/provinces', function () {
 
 Route::get('/wilayah', function () {
     return view('wilayah');
-});
+})->name('wilayah');

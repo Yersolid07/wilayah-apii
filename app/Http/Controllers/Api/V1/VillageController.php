@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use App\Models\Village;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+class Controller extends BaseController
+{
+    use AuthorizesRequests, ValidatesRequests;
+}
 
 class VillageController extends Controller
 {
@@ -31,19 +39,15 @@ class VillageController extends Controller
             $limit = $request->input('limit', 10);
             
             $total = $query->count();
-            $villages = $query->skip(($page - 1) * $limit)
-                            ->take($limit)
-                            ->get();
+            $villages = $query->select('village_id as id', 'name')
+                             ->skip(($page - 1) * $limit)
+                             ->take($limit)
+                             ->get();
             
             Log::info('Found ' . $villages->count() . ' villages');
             
             return response()->json([
-                'data' => $villages->map(function($village) {
-                    return [
-                        'id' => $village->village_id,
-                        'name' => $village->name
-                    ];
-                }),
+                'data' => $villages,
                 'meta' => [
                     'page' => (int)$page,
                     'limit' => (int)$limit,

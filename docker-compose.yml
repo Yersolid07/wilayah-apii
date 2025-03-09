@@ -1,0 +1,64 @@
+version: "3"
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: wilayah-app
+        restart: unless-stopped
+        working_dir: /var/www
+        volumes:
+            - .:/var/www
+        environment:
+            DB_CONNECTION: mysql
+            DB_HOST: wilayah-db
+            DB_PORT: 3306
+            DB_DATABASE: wilayah_db
+            DB_USERNAME: root
+            DB_PASSWORD: # Kosongkan password
+        networks:
+            - wilayah-network
+        depends_on:
+            db:
+                condition: service_healthy
+        command: php-fpm
+
+    nginx:
+        image: nginx:alpine
+        container_name: wilayah-nginx
+        restart: unless-stopped
+        ports:
+            - "8000:80"
+        volumes:
+            - .:/var/www
+            - ./docker/nginx:/etc/nginx/conf.d
+        networks:
+            - wilayah-network
+        depends_on:
+            - app
+
+    db:
+        image: mysql:8.0
+        container_name: wilayah-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: wilayah_db
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Izinkan password kosong
+        volumes:
+            - dbdata:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        networks:
+            - wilayah-network
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+networks:
+    wilayah-network:
+        driver: bridge
+
+volumes:
+    dbdata:

@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use App\Models\Regency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+class Controller extends BaseController
+{
+    use AuthorizesRequests, ValidatesRequests;
+}
 
 class RegencyController extends Controller
 {
@@ -30,20 +38,15 @@ class RegencyController extends Controller
             $limit = $request->input('limit', 10);
             
             $total = $query->count();
-            $regencies = $query->skip(($page - 1) * $limit)
-                             ->take($limit)
-                             ->get();
+            $regencies = $query->select('regency_id as id', 'name', 'province_id')
+                              ->skip(($page - 1) * $limit)
+                              ->take($limit)
+                              ->get();
             
             Log::info('Found ' . $regencies->count() . ' regencies');
             
             return response()->json([
-                'data' => $regencies->map(function($regency) {
-                    return [
-                        'id' => $regency->regency_id,
-                        'name' => $regency->name,
-                        'province_id' => $regency->province_id
-                    ];
-                }),
+                'data' => $regencies,
                 'meta' => [
                     'page' => (int)$page,
                     'limit' => (int)$limit,
@@ -99,19 +102,15 @@ class RegencyController extends Controller
             $limit = $request->input('limit', 10);
             
             $total = $query->count();
-            $regencies = $query->skip(($page - 1) * $limit)
-                             ->take($limit)
-                             ->get();
+            $regencies = $query->select('regency_id as id', 'name', 'province_id')
+                              ->skip(($page - 1) * $limit)
+                              ->take($limit)
+                              ->get();
             
             Log::info('Found ' . $regencies->count() . ' regencies');
             
             return response()->json([
-                'data' => $regencies->map(function($regency) {
-                    return [
-                        'id' => $regency->regency_id,
-                        'name' => $regency->name
-                    ];
-                }),
+                'data' => $regencies,
                 'meta' => [
                     'page' => (int)$page,
                     'limit' => (int)$limit,

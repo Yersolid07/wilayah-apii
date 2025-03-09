@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use App\Models\Province;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+class Controller extends BaseController
+{
+    use AuthorizesRequests, ValidatesRequests;
+}
 
 class ProvinceController extends Controller
 {
@@ -30,19 +38,15 @@ class ProvinceController extends Controller
             $limit = $request->input('limit', 10);
             
             $total = $query->count();
-            $provinces = $query->skip(($page - 1) * $limit)
+            $provinces = $query->select('province_id as id', 'name')
+                             ->skip(($page - 1) * $limit)
                              ->take($limit)
                              ->get();
             
             Log::info('Found ' . $provinces->count() . ' provinces');
             
             return response()->json([
-                'data' => $provinces->map(function($province) {
-                    return [
-                        'id' => $province->province_id,
-                        'name' => $province->name
-                    ];
-                }),
+                'data' => $provinces,
                 'meta' => [
                     'page' => (int)$page,
                     'limit' => (int)$limit,
@@ -77,6 +81,7 @@ class ProvinceController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $request->validate([
                 'id' => 'required|string|unique:provinces_ref,province_id',
@@ -88,9 +93,10 @@ class ProvinceController extends Controller
                 'name' => $request->name,
                 'is_active' => true,
                 'created_at' => now(),
-                'created_by' => 'system' // Adjust based on your auth system
+                'created_by' => 'system'
             ]);
 
+            DB::commit();
             return response()->json([
                 'data' => [
                     'id' => $province->province_id,
@@ -98,6 +104,7 @@ class ProvinceController extends Controller
                 ]
             ], 201);
         } catch (\Exception $e) {
+            DB::rollback();
             Log::error('Error creating province: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to create province'], 500);
         }
@@ -105,8 +112,11 @@ class ProvinceController extends Controller
 
     public function update(Request $request, $id)
     {
+        DB::beginTransaction();
         try {
-            $province = Province::where('province_id', $id)->firstOrFail();
+            $province = Province::where('province_id', $id)
+                ->where('is_active', true)
+                ->firstOrFail();
             
             $request->validate([
                 'name' => 'required|string|max:255'
@@ -115,9 +125,10 @@ class ProvinceController extends Controller
             $province->update([
                 'name' => $request->name,
                 'updated_at' => now(),
-                'updated_by' => 'system' // Adjust based on your auth system
+                'updated_by' => 'system'
             ]);
 
+            DB::commit();
             return response()->json([
                 'data' => [
                     'id' => $province->province_id,
@@ -125,6 +136,7 @@ class ProvinceController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            DB::rollback();
             Log::error('Error updating province: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to update province'], 500);
         }
@@ -132,17 +144,22 @@ class ProvinceController extends Controller
 
     public function destroy($id)
     {
+        DB::beginTransaction();
         try {
-            $province = Province::where('province_id', $id)->firstOrFail();
+            $province = Province::where('province_id', $id)
+                ->where('is_active', true)
+                ->firstOrFail();
             
             $province->update([
                 'is_active' => false,
                 'updated_at' => now(),
-                'updated_by' => 'system' // Adjust based on your auth system
+                'updated_by' => 'system'
             ]);
 
+            DB::commit();
             return response()->json(null, 204);
         } catch (\Exception $e) {
+            DB::rollback();
             Log::error('Error deleting province: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to delete province'], 500);
         }
